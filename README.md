@@ -45,6 +45,7 @@ FraudLens-Analyzer/
 ├── script.js
 ├── server.js
 └── styles.css
+└── vercel.json
 ```
 
 ## Clone And Run Locally
@@ -136,6 +137,15 @@ GEMINI_MODEL=gemini-2.5-flash
 4. Deploy the project.
 
 Vercel will serve the frontend files and use `api/gemini.js` as the serverless Gemini API endpoint.
+
+After deploy, test these URLs:
+
+```text
+https://your-vercel-url.vercel.app/
+https://your-vercel-url.vercel.app/api/health
+```
+
+Open `/api/gemini` directly in the browser will not work because it only accepts `POST` requests from the app.
 
 ## Common Issues
 
