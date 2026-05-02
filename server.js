@@ -31,9 +31,7 @@ function loadEnv() {
     const [key, ...valueParts] = trimmed.split("=");
     const value = valueParts.join("=").trim().replace(/^["']|["']$/g, "");
 
-    if (!process.env[key]) {
-      process.env[key] = value;
-    }
+    process.env[key] = value;
   });
 }
 
@@ -75,7 +73,14 @@ async function handleGeminiRequest(request, response) {
   }
 
   const body = await readRequestBody(request);
-  const payload = JSON.parse(body || "{}");
+  let payload;
+
+  try {
+    payload = JSON.parse(body || "{}");
+  } catch {
+    sendJson(response, 400, { error: "Invalid JSON body." });
+    return;
+  }
 
   if (!payload.prompt) {
     sendJson(response, 400, { error: "Missing prompt." });
@@ -101,7 +106,7 @@ async function handleGeminiRequest(request, response) {
     })
   });
 
-  const data = await geminiResponse.json();
+  const data = await geminiResponse.json().catch(() => ({}));
 
   if (!geminiResponse.ok) {
     sendJson(response, geminiResponse.status, {
@@ -111,6 +116,7 @@ async function handleGeminiRequest(request, response) {
   }
 
   sendJson(response, 200, {
+    finishReason: data.candidates?.[0]?.finishReason || null,
     text: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ""
   });
 }
@@ -124,10 +130,11 @@ function handleHealthRequest(response) {
 
 function serveStatic(request, response) {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
-  const safePath = path.normalize(decodeURIComponent(requestUrl.pathname)).replace(/^(\.\.[/\\])+/, "");
-  const filePath = path.join(ROOT, safePath === "/" ? "index.html" : safePath);
+  const decodedPath = decodeURIComponent(requestUrl.pathname);
+  const relativePath = decodedPath === "/" ? "index.html" : decodedPath.replace(/^[/\\]+/, "");
+  const filePath = path.resolve(ROOT, relativePath);
 
-  if (!filePath.startsWith(ROOT)) {
+  if (!filePath.startsWith(ROOT + path.sep) && filePath !== ROOT) {
     response.writeHead(403);
     response.end("Forbidden");
     return;
@@ -151,6 +158,9 @@ loadEnv();
 
 const server = http.createServer(async (request, response) => {
   try {
+    const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+    const pathname = requestUrl.pathname.replace(/\/$/, "") || "/";
+
     if (request.method === "OPTIONS") {
       response.writeHead(204, {
         "Access-Control-Allow-Origin": "*",
@@ -161,12 +171,12 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    if (request.method === "GET" && request.url === "/api/health") {
+    if (request.method === "GET" && pathname === "/api/health") {
       handleHealthRequest(response);
       return;
     }
 
-    if (request.method === "POST" && request.url === "/api/gemini") {
+    if (request.method === "POST" && pathname === "/api/gemini") {
       await handleGeminiRequest(request, response);
       return;
     }
