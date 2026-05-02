@@ -11,7 +11,8 @@
   }
 
   async function callGeminiApi(prompt) {
-    const apiBaseUrl = window.location.port === "3000" ? "" : "http://localhost:3000";
+    const isLocalStaticPage = window.location.protocol === "file:" || (window.location.hostname === "127.0.0.1" && window.location.port !== "3000");
+    const apiBaseUrl = isLocalStaticPage ? "http://localhost:3000" : "";
     const response = await fetch(`${apiBaseUrl}/api/gemini`, {
       method: "POST",
       headers: {

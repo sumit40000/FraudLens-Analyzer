@@ -33,9 +33,10 @@ The app uses a rule-based scoring engine for fast detection and Gemini AI for a 
 ```text
 FraudLens-Analyzer/
 ├── api/
-│   └── geminiApi.js
+│   └── gemini.js
 ├── utils/
 │   ├── aiHelper.js
+│   ├── geminiClient.js
 │   └── scoringEngine.js
 ├── .env.example
 ├── .gitignore
@@ -114,6 +115,27 @@ Expected response:
 - `.env` is already listed in `.gitignore`.
 - If the AI explanation fails, the app will still run rule-based detection.
 - After changing `.env`, restart the server with `Ctrl + C` and then `npm start`.
+
+## Deploy On Vercel
+
+1. Push the latest code to GitHub.
+
+2. Import the repository in Vercel:
+
+```text
+https://github.com/sumit40000/FraudLens-Analyzer
+```
+
+3. Add these environment variables in Vercel project settings:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+4. Deploy the project.
+
+Vercel will serve the frontend files and use `api/gemini.js` as the serverless Gemini API endpoint.
 
 ## Common Issues
 
