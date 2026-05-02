@@ -3,6 +3,14 @@ async function readBody(request) {
     return request.body;
   }
 
+  if (typeof request.body === "string") {
+    return JSON.parse(request.body || "{}");
+  }
+
+  if (Buffer.isBuffer(request.body)) {
+    return JSON.parse(request.body.toString("utf8") || "{}");
+  }
+
   return new Promise((resolve, reject) => {
     let body = "";
 
