@@ -30,6 +30,13 @@ async function readBody(request) {
   });
 }
 
+function extractGeminiText(data) {
+  return (data.candidates?.[0]?.content?.parts || [])
+    .map((part) => part.text || "")
+    .join("")
+    .trim();
+}
+
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") {
     response.status(405).json({ error: "Method not allowed." });
@@ -66,7 +73,7 @@ module.exports = async function handler(request, response) {
         ],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 900
+          maxOutputTokens: 1600
         }
       })
     });
@@ -82,7 +89,8 @@ module.exports = async function handler(request, response) {
 
     response.status(200).json({
       finishReason: data.candidates?.[0]?.finishReason || null,
-      text: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ""
+      text: extractGeminiText(data),
+      usageMetadata: data.usageMetadata || null
     });
   } catch (error) {
     response.status(500).json({ error: error.message || "Server error." });

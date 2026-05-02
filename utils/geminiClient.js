@@ -26,8 +26,7 @@
       throw new Error(data.error || `Gemini request failed with status ${response.status}`);
     }
 
-    const data = await response.json();
-    return data.text || "";
+    return response.json();
   }
 
   window.GeminiApi = {

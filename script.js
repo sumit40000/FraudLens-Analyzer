@@ -128,8 +128,11 @@ async function runDetection(content) {
     renderResult(result);
 
     const explanation = await window.FraudAiHelper.requestAiExplanation(content, result);
+    const tokenLimitNote = explanation.finishReason === "MAX_TOKENS"
+      ? "\n\nNote: Gemini stopped because it reached the output token limit."
+      : "";
     aiExplanation.textContent = explanation.available
-      ? explanation.text
+      ? `${explanation.text}${tokenLimitNote}`
       : `AI unavailable, running rule based detection. ${explanation.text}`;
     aiStatusText.textContent = explanation.available ? "AI generated" : "AI unavailable";
   } catch (error) {

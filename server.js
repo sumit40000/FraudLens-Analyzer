@@ -63,6 +63,13 @@ function readRequestBody(request) {
   });
 }
 
+function extractGeminiText(data) {
+  return (data.candidates?.[0]?.content?.parts || [])
+    .map((part) => part.text || "")
+    .join("")
+    .trim();
+}
+
 async function handleGeminiRequest(request, response) {
   const apiKey = process.env.GEMINI_API_KEY;
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -101,7 +108,7 @@ async function handleGeminiRequest(request, response) {
       ],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 900
+        maxOutputTokens: 1600
       }
     })
   });
@@ -117,7 +124,8 @@ async function handleGeminiRequest(request, response) {
 
   sendJson(response, 200, {
     finishReason: data.candidates?.[0]?.finishReason || null,
-    text: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || ""
+    text: extractGeminiText(data),
+    usageMetadata: data.usageMetadata || null
   });
 }
 

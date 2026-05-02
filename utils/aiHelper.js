@@ -53,7 +53,8 @@
       };
     }
 
-    const text = await requestGeminiExplanation(prompt, config);
+    const geminiResult = await requestGeminiExplanation(prompt, config);
+    const text = geminiResult.text || "";
 
     if (!text) {
       throw new Error("Gemini response was empty.");
@@ -62,6 +63,7 @@
     return {
       available: true,
       source: "gemini",
+      finishReason: geminiResult.finishReason,
       prompt,
       text
     };
